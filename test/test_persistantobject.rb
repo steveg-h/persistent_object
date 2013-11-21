@@ -1,6 +1,6 @@
 #copyright uCratos.com 2011
 $:<<Dir.getwd
-ENV['PERSISTANT_OBJECT_DB']=File.join(File.dirname(__FILE__),'test.db')
+ENV['PERSISTENT_OBJECT_DB']=File.join(File.dirname(__FILE__),'test.db')
 
 $test=true
 
@@ -13,11 +13,11 @@ end
 require 'test/unit'
 require 'fileutils'
 
-require_relative '../persistant_object'
+require_relative '../persistent_object'
 require 'pp'
 
 class Mock
-  include PersistantObject
+  include PersistentObject
   
   attr_accessor :param1, :param2, :param3
   self.persists :param1, :param2
@@ -29,8 +29,8 @@ class Mock
   end
 end
 
-class TestPersistantObject < Test::Unit::TestCase
-  include PersistantObject
+class TestPersistentObject < Test::Unit::TestCase
+  include PersistentObject
   
   THREAD_SLEEP=$thread_sleep || 0.02
   TEST_SLEEP=$test_sleep || THREAD_SLEEP*10
@@ -103,7 +103,7 @@ class TestPersistantObject < Test::Unit::TestCase
     assert_equal([self.param1, "'"+self.param2.to_s+"'"], self.persisted_values)
     
     assert_equal({:param1 => self.param1, :param2 =>self.param2}, self.persisted_hash)
-    assert_equal("param1=#{self.param1},param2=#{PersistantObject.sqlite_field(self.param2)}", self.persisted_update_str)
+    assert_equal("param1=#{self.param1},param2=#{PersistentObject.sqlite_field(self.param2)}", self.persisted_update_str)
     
     self.param2=2
     

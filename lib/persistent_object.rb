@@ -5,13 +5,13 @@ require 'yaml'
 require_relative 'sqlite_service'
 
 
-module PersistantObject
+module PersistentObject
   require_relative 'db_string'
 
   include SqliteService
   extend SqliteService
 
-  attr_reader :persistant_object_id
+  attr_reader :persistent_object_id
   
   def self.included(base)
     base.extend(ClassMethods)
@@ -50,7 +50,6 @@ module PersistantObject
         self.marshal.load(row['marshal'])
       else
         param_count=self.allocate.method(:initialize).arity
-        STDERR.puts "param_count is #{param_count}, persists is #{@persists.inspect}"
         if param_count==1
           @persists.size==1 ? self.new(params.values.first) : self.new(params)
         else
@@ -65,22 +64,16 @@ module PersistantObject
     
     
     def find(params={}, &block)
-      #STDERR.puts "In find #{params}"
-      #STDERR.puts block if block_given?
       init_sqlite_service
       
       str="SELECT * FROM #{self.name} "
       str.extend(DBString)
       unless params.empty?
         proc=param_args(params)
-        #STDERR.puts proc.inspect, str
         proc.call(str) 
-        #STDERR.puts proc.inspect, str
       end
         
       yield str if block_given?
-      
-      #STDERR.puts str
       
       ret=@sqlite_database.execute(str) 
     end    
@@ -149,7 +142,7 @@ module PersistantObject
   
   def save(id=nil)
     init_sqlite_service
-    id||=@persistant_object_id
+    id||=@persistent_object_id
     
     before_save
     
@@ -157,28 +150,25 @@ module PersistantObject
       #see if we can find the object
       unless id
         row=self.class.first(self.persisted_hash) 
-        id=@persistant_object_id=row['id'] if row  
+        id=@persistent_object_id=row['id'] if row  
       end
         
       if id
         cmd="UPDATE #{self.class} set #{self.persisted_m_update_str} where id=#{id}"
       else
         marshaler=self.class.marshal
-        dump=PersistantObject.sqlite_field(marshaler.dump(self))
+        dump=PersistentObject.sqlite_field(marshaler.dump(self))
         cmd="INSERT into #{self.class}(#{(persisted_keys << 'marshal').join(',')}) VALUES(#{(persisted_values << dump).join(',')}); SELECT last_insert_rowid() AS id" 
       end
       row=@sqlite_database.simple_transaction(cmd)
       
-      STDERR.puts cmd
-      STDERR.puts @sqlite_database.execute("SELECT * FROM #{self.class}")
-      STDERR.puts "row is #{row}"
             
-      @persistant_object_id ||= row && row[0] && row[0]['id']
+      @persistent_object_id ||= row && row[0] && row[0]['id']
       ensure
         after_save
       end
       
-      @persistant_object_id 
+      @persistent_object_id 
     end
  
     
@@ -193,7 +183,7 @@ private unless $test
   def persisted_values
     self.class.persisted.collect do |x| 
       v=self.send(x)
-      PersistantObject.sqlite_field(v)
+      PersistentObject.sqlite_field(v)
       
     end
   end
@@ -209,14 +199,14 @@ private unless $test
   
   #string to use for update - without marshal additions
   def persisted_update_str
-    self.persisted_hash.to_a.collect{|x| "#{x[0]}=#{PersistantObject.sqlite_field(x[1])}" }.join(',')
+    self.persisted_hash.to_a.collect{|x| "#{x[0]}=#{PersistentObject.sqlite_field(x[1])}" }.join(',')
   end
   
   #string to use for update - without marshal additions
   def persisted_m_update_str
     ph=self.persisted_hash
     ph['marshal']=self.class.marshal.dump(self)
-    ph.to_a.collect{|x| "#{x[0]}=#{PersistantObject.sqlite_field(x[1])}" }.join(',')
+    ph.to_a.collect{|x| "#{x[0]}=#{PersistentObject.sqlite_field(x[1])}" }.join(',')
   end
   
   #stub methods

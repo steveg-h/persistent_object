@@ -5,4 +5,4 @@ unless Kernel.respond_to?(:require_relative)
 end
 
 require_relative 'lib/sqlite_service.rb'
-require_relative 'lib/persistant_object'
+require_relative 'lib/persistent_object'

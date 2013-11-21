@@ -1,7 +1,6 @@
 
-module PersistantObject
+module PersistentObject
   class SQLite3Interface
-    include Substitution
     
     SEP='|'
     INIT_FILE=File.join(File.dirname(__FILE__),'..','config','sqliterc')

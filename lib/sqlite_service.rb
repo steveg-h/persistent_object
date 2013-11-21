@@ -11,9 +11,8 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-require_relative './substitution'
 
-module PersistantObject 
+module PersistentObject 
   #Sqlite Service is used to connect to a local sqlite3 database used to cache
   #local data in a persistent manner. It can either use the ruby/sqlite3 module
   #or a simpler pure ruby module that runs off the command line
@@ -67,11 +66,11 @@ module PersistantObject
     end  
     
     
-    ENV['PERSISTANT_OBJECT_PATH']='persistant_object.db'
+    ENV['PERSISTENT_OBJECT_PATH']='persistent_object.db'
     attr_reader  :sqlite_database
     
     
-    def init(db=ENV['PERSISTANT_OBJECT_PATH'])
+    def init(db=ENV['PERSISTENT_OBJECT_PATH'])
       unless @sqlite_database && !@sqlite_database.closed?
         @sqlite_database=SQLite3Interface.new(db)  
       end
