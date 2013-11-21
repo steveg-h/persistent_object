@@ -49,7 +49,8 @@ class TestPersistantObject < Test::Unit::TestCase
   
   def test_01_create_table
     #table should be created automatically
-    assert_not_nil(@sqlite_database.execute('.tables'))
+    table_data=@sqlite_database.execute("PRAGMA table_info(#{self.class})")
+    assert_not_nil(table_data)
     assert_equal(YAML, self.class.marshal)
   end
     
@@ -74,7 +75,8 @@ class TestPersistantObject < Test::Unit::TestCase
     self.param2=2
     
     @sqlite_database.execute("INSERT into #{self.class}(param1, param2) VALUES(#{self.param1}, #{self.param2})")
-    
+    #pp @sqlite_database.execute("SELECT * from #{self.class}")
+        
     rows=@tpo.find {|x| x.where(:param1 => param1, :param2 => param2) }
     assert_equal(1, rows.size)
     

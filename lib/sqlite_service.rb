@@ -25,6 +25,7 @@ module PersistantObject
     #which uses the C API or the pure ruby interface in this modue which is much simpler
     #and will work on embedded platforms where the C APIII might not be available 
     begin
+      raise LoadError, "Sqlite3 needs to support multiple transactions in an execute statement"
       require 'sqlite3'
       
       class SQLite3Interface < SQLite3::Database
@@ -39,16 +40,21 @@ module PersistantObject
         
         #ensure that execute does the same substitutions as the cmd line version for compatibility
         #don't know when we might want to take a DB dumped on one machine and restore it on another :-)
-        def execute(str, *args)
-          cmd=substitute(str)
-          STDERR.puts cmd
-          rows=super(cmd, *args)
+        def execute(str)
+          str.extend(DBString)
+          str.substitute!
+          rows=super(str)
+                    
           rows.each do |r|
-            r.each{ |k,v| r[k]=unsubstitute[v] }
+            r.each{ |k,v| r[k]=v.extend(DBString).unsubstitute! if v.kind_of? String }
           end
           
           rows
         end 
+        
+        def simple_transaction(str)
+          self.transaction{ self.execute(str) }
+        end
         
         def method_missing(sym, *args)
           nil
@@ -56,8 +62,8 @@ module PersistantObject
       end  
       
       
-    rescue
-      require 'sqlite3_interface'
+    rescue LoadError
+      require_relative 'sqlite3_interface'
     end  
     
     

@@ -108,6 +108,7 @@ module PersistantObject
       create_str=create_str_base + (@persists.collect {|p| p.to_s+' TEXT'} << 'marshal TEXT').join(',') +')'
       
       self.init_sqlite_service 
+      
       @sqlite_database.execute(create_str)
     end
     
@@ -164,10 +165,14 @@ module PersistantObject
       else
         marshaler=self.class.marshal
         dump=PersistantObject.sqlite_field(marshaler.dump(self))
-        cmd="BEGIN; INSERT into #{self.class}(#{(persisted_keys << 'marshal').join(',')}) VALUES(#{(persisted_values << dump).join(',')}); SELECT last_insert_rowid() AS id; END" 
+        cmd="INSERT into #{self.class}(#{(persisted_keys << 'marshal').join(',')}) VALUES(#{(persisted_values << dump).join(',')}); SELECT last_insert_rowid() AS id" 
       end
-      #STDERR.puts cmd
-      row=@sqlite_database.execute(cmd)
+      row=@sqlite_database.simple_transaction(cmd)
+      
+      STDERR.puts cmd
+      STDERR.puts @sqlite_database.execute("SELECT * FROM #{self.class}")
+      STDERR.puts "row is #{row}"
+            
       @persistant_object_id ||= row && row[0] && row[0]['id']
       ensure
         after_save

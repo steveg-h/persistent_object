@@ -1,4 +1,20 @@
 module DBString 
+  EOL='EOLEOL'
+  QUOTE='QQQ'
+      
+  def substitute!
+    self.gsub!("\n",EOL)
+    self.gsub!('"', QUOTE)
+    self
+  end
+  
+  def unsubstitute!
+    self.gsub!(EOL,"\n")
+    self.gsub!(QUOTE,'"')
+    self
+  end
+  
+  
   def where(conditions={})
      condition_strs=conditions.collect do |k,v| 
        #if v is a pure string then quote it
