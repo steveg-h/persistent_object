@@ -19,8 +19,8 @@ module PersistentObject
         field.extend(DBString)
         field.unsubstitute!
         val=field
-        val=field.to_i if f=~/^\d+/
-        val=field.to_f if f=~/^\d+\.\d+/
+        val=field.to_i if field=~/^\d+/
+        val=field.to_f if field=~/^\d+\.\d+/
         field_hash[headers[i]]=val
       end
       field_hash
