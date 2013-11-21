@@ -1,4 +1,3 @@
-require 'substitution'
 
 module PersistantObject
   class SQLite3Interface

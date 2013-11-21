@@ -1,22 +1,24 @@
 #copyright uCratos.com 2011
 $:<<Dir.getwd
+ENV['PERSISTANT_OBJECT_DB']=File.join(File.dirname(__FILE__),'test.db')
 
 $test=true
 
+unless Kernel.respond_to?(:require_relative)   
+  def require_relative(path)
+    require File.join(File.dirname(caller[0]), path.to_str)
+  end
+end
+
 require 'test/unit'
-require 'test/unit_ext'
 require 'fileutils'
 
-require 'test/free_port'
-require 'lib/ext/kernel'
-require 'lib/db_client/persistant_object'
+require_relative '../persistant_object'
 require 'pp'
-
-
-include DBClient
 
 class Mock
   include PersistantObject
+  
   attr_accessor :param1, :param2, :param3
   self.persists :param1, :param2
   

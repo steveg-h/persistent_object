@@ -11,9 +11,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-#load File.join(File.dirname(__FILE__),'..','mysql.rb')
-#require 'lib/sqlite3'
-
+require_relative './substitution'
 
 module PersistantObject 
   #Sqlite Service is used to connect to a local sqlite3 database used to cache
@@ -22,6 +20,7 @@ module PersistantObject
   #NOTE that these 2 are not mixable 
    
   module SqliteService
+    
     #Create a uniform interface independent of whether we use the ruby/sqite3 interface 
     #which uses the C API or the pure ruby interface in this modue which is much simpler
     #and will work on embedded platforms where the C APIII might not be available 
@@ -40,9 +39,10 @@ module PersistantObject
         
         #ensure that execute does the same substitutions as the cmd line version for compatibility
         #don't know when we might want to take a DB dumped on one machine and restore it on another :-)
-        def execute(str)
+        def execute(str, *args)
           cmd=substitute(str)
-          rows=super(cmd)
+          STDERR.puts cmd
+          rows=super(cmd, *args)
           rows.each do |r|
             r.each{ |k,v| r[k]=unsubstitute[v] }
           end
@@ -50,7 +50,7 @@ module PersistantObject
           rows
         end 
         
-        def method_missing
+        def method_missing(sym, *args)
           nil
         end
       end  
@@ -61,11 +61,11 @@ module PersistantObject
     end  
     
     
-    ENV[PERSISTANT_OBJECT_PATH]='persistant_object.db'
+    ENV['PERSISTANT_OBJECT_PATH']='persistant_object.db'
     attr_reader  :sqlite_database
     
     
-    def init(db=ENV[PERSISTANT_OBJECT_PATH])
+    def init(db=ENV['PERSISTANT_OBJECT_PATH'])
       unless @sqlite_database && !@sqlite_database.closed?
         @sqlite_database=SQLite3Interface.new(db)  
       end
